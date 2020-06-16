@@ -1,0 +1,25 @@
+- hosts: localhost
+  connection: localhost
+  gather_facts: False
+
+  tasks:
+    - name: create an instance
+      ec2:
+         key_name: my_key
+         instance_type: t2.micro
+         image: ami-0fbbd9b215700c5dd
+         region: eu-west-2
+         wait: true
+         exact_count: 6
+         count_tag:
+            Name: Demo
+         instance_tags:
+            Name: Demo
+      register: ec2
+
+    - name: Wait for SSH to come up
+      wait_for:
+        host: "{{ item.public_ip }}"
+        port: 22
+        state: started
+      loop: "{{ ec2.instances }}"
